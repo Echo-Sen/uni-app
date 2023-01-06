@@ -1,6 +1,6 @@
 <template>
 	<view>
-		subpkg
+		subpkg - detail
 	</view>
 </template>
 
