@@ -20,12 +20,12 @@
 				</view>
 			</view>
 			<!-- 运费 -->
-			<view class="yf">快递：免运费</view>
+			<view class="yf">快递：免运费--- {{ cart.length }}</view>
 		</view>
 		<!-- 富文本 将 HTML 渲染到页面中 -->
 		<rich-text :nodes="goods_info.goods_introduce"></rich-text>
 		<view class="goods_nav">
-			
+
 			<uni-goods-nav :fill="true" :options="options" :buttonGroup="buttonGroup" @click="onClick"
 				@buttonClick="buttonClick" />
 		</view>
@@ -33,7 +33,33 @@
 </template>
 
 <script>
+	import {
+		mapState,
+		mapMutations,
+		mapGetters
+	} from 'vuex'
 	export default {
+		computed: {
+			// 调用 mapstate 方法，把 m_cart 模块中的 cart 数组映射到当前页面
+			// ...mapState('模块的名称',['要映射的数据名称1','要映射的数据名称2'])
+			// 注意：今后无论映射 mutations 方法，还是 getters 属性，还是 state 中的数据，都需要指定模块的名称，才能进行映射。
+			...mapState('m_cart', ['cart']),
+			...mapGetters('m_cart', ['total'])
+		},
+		watch: {
+			//  定义 total 侦听器, 指向一个配置对象
+			total: {
+				handler(newVal) {
+					const findResult = this.options.find(x => x.text === '购物车')
+
+					if (findResult) {
+						findResult.info = newVal
+					}
+				},
+				// immediate 属性用来声明此侦听器 ，是否在页面首次加载完毕后立即调用
+				immediate:true
+			}
+		},
 		data() {
 			return {
 				// 商品详情对象
@@ -50,7 +76,7 @@
 				}, {
 					icon: 'cart',
 					text: '购物车',
-					info: 2
+					info: 0
 				}],
 				buttonGroup: [{
 						text: '加入购物车',
@@ -70,6 +96,8 @@
 			this.getGoodsDetail(goods_id)
 		},
 		methods: {
+			// 将 addToCart 方法映射到当前页面使用
+			...mapMutations('m_cart', ['addToCart']),
 			async getGoodsDetail(goods_id) {
 				const {
 					data: res
@@ -93,16 +121,26 @@
 				})
 			},
 			onClick(e) {
-				if(e.content.text === '购物车') {
+				if (e.content.text === '购物车') {
 					// 切换到购物车
 					uni.switchTab({
-						url:'/pages/cart/cart'
+						url: '/pages/cart/cart'
 					})
 				}
 			},
 			buttonClick(e) {
-				console.log(e);
-				this.options[2].info++
+				if (e.content.text === '加入购物车') {
+					const goods = {
+						goods_id: this.goods_info.goods_id,
+						goods_name: this.goods_info.goods_name,
+						goods_price: this.goods_info.goods_price,
+						goods_count: 1,
+						goods_small_logo: this.goods_info.goods_small_logo,
+						goods_state: true
+					}
+					this.addToCart(goods)
+				}
+
 			}
 		}
 	}
@@ -158,17 +196,18 @@
 			color: gray;
 		}
 	}
+
 	.goods-detail-container {
-	  // 给页面外层的容器，添加 50px 的内padding，
-	  // 防止页面内容被底部的商品导航组件遮盖
-	  padding-bottom: 50px;
+		// 给页面外层的容器，添加 50px 的内padding，
+		// 防止页面内容被底部的商品导航组件遮盖
+		padding-bottom: 50px;
 	}
-	
+
 	.goods_nav {
-	  // 为商品导航组件添加固定定位
-	  position: fixed;
-	  bottom: 0;
-	  left: 0;
-	  width: 100%;
+		// 为商品导航组件添加固定定位
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		width: 100%;
 	}
 </style>
