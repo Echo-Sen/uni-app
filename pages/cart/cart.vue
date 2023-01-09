@@ -51,7 +51,6 @@
 		},
 		computed: {
 			...mapState('m_cart', ['cart']),
-
 		},
 		methods: {
 			...mapMutations('m_cart', ['updateGoodsState', 'updateGoodsCount', 'removeGoodsById']),
